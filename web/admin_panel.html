@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Roots Açaí — Painel Administrativo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    /* ══════════════════════════════════════
+       TOKENS
+    ══════════════════════════════════════ */
+    :root {
+      --bg:          #0D0D0D;
+      --surface:     #161616;
+      --surface2:    #1F1F1F;
+      --border:      #2A2A2A;
+      --border-hi:   #3D3D3D;
+      --accent:      #7C3AED;
+      --accent-hi:   #9B5FF5;
+      --accent-glow: rgba(124,58,237,.25);
+      --gold:        #F59E0B;
+      --gold-dim:    rgba(245,158,11,.15);
+      --green:       #22C55E;
+      --red:         #EF4444;
+      --blue:        #3B82F6;
+      --text:        #F0F0F0;
+      --muted:       #808080;
+      --muted2:      #555;
+      --radius:      10px;
+      --radius-sm:   6px;
+      --font-head:   'Outfit', sans-serif;
+      --font-mono:   'IBM Plex Mono', monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 15px; }
+    body { font-family: var(--font-head); background: var(--bg); color: var(--text);
+           min-height: 100vh; display: flex; overflow-x: hidden; }
+
+    /* ══════════════════════════════════════
+       SIDEBAR
+    ══════════════════════════════════════ */
+    .sidebar {
+      width: 240px; min-height: 100vh;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      position: fixed; top: 0; left: 0; bottom: 0;
+      z-index: 100;
+    }
+    .sidebar-logo {
+      padding: 24px 20px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .sidebar-logo .logo-icon { font-size: 1.6rem; }
+    .sidebar-logo .logo-text { font-size: 1rem; font-weight: 800; letter-spacing: -.02em; }
+    .sidebar-logo .logo-text span { color: var(--accent-hi); }
+    .sidebar-logo .logo-badge {
+      font-family: var(--font-mono); font-size: 0.58rem;
+      background: var(--accent); color: #fff; padding: 2px 7px;
+      border-radius: 4px; margin-left: auto; letter-spacing: .05em;
+    }
+    .nav-section { padding: 16px 12px 0; }
+    .nav-label { font-size: 0.65rem; font-weight: 700; letter-spacing: .12em;
+                 text-transform: uppercase; color: var(--muted2); padding: 0 8px 8px; }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px; border-radius: var(--radius-sm);
+      cursor: pointer; font-size: 0.88rem; font-weight: 500;
+      color: var(--muted); transition: all .2s; position: relative;
+      margin-bottom: 2px;
+    }
+    .nav-item:hover { background: var(--surface2); color: var(--text); }
+    .nav-item.active {
+      background: var(--accent-glow); color: var(--accent-hi);
+      border: 1px solid rgba(124,58,237,.3);
+    }
+    .nav-item .ni-icon { font-size: 1rem; width: 20px; text-align: center; }
+    .sidebar-footer {
+      margin-top: auto; padding: 16px 20px;
+      border-top: 1px solid var(--border);
+      font-size: 0.75rem; color: var(--muted);
+    }
+    .sidebar-footer strong { display: block; color: var(--text); font-size: 0.82rem; }
+
+    /* ══════════════════════════════════════
+       MAIN
+    ══════════════════════════════════════ */
+    .main { margin-left: 240px; flex: 1; display: flex; flex-direction: column; }
+
+    .topbar {
+      height: 56px; background: var(--surface); border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; padding: 0 28px;
+      justify-content: space-between; position: sticky; top: 0; z-index: 50;
+    }
+    .topbar-title { font-size: 0.9rem; font-weight: 700; color: var(--text); }
+    .topbar-crumb { font-size: 0.75rem; color: var(--muted); margin-top: 1px; }
+    .topbar-right { display: flex; align-items: center; gap: 12px; }
+    .topbar-tag {
+      font-family: var(--font-mono); font-size: 0.65rem;
+      background: var(--gold-dim); color: var(--gold); border: 1px solid rgba(245,158,11,.3);
+      padding: 3px 10px; border-radius: 50px;
+    }
+
+    .content { padding: 28px; flex: 1; }
+
+    /* ══════════════════════════════════════
+       SCREEN (views)
+    ══════════════════════════════════════ */
+    .screen { display: none; animation: fadeIn .25s ease; }
+    .screen.active { display: block; }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+
+    /* ══════════════════════════════════════
+       TYPOGRAPHY
+    ══════════════════════════════════════ */
+    .page-header { margin-bottom: 24px; }
+    .page-header h1 { font-size: 1.5rem; font-weight: 800; letter-spacing: -.03em; }
+    .page-header p { color: var(--muted); font-size: 0.88rem; margin-top: 4px; }
+
+    /* ══════════════════════════════════════
+       CARDS / PANELS
+    ══════════════════════════════════════ */
+    .panel {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 24px; margin-bottom: 20px;
+    }
+    .panel-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .panel-title { font-size: 0.92rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+    .panel-title span { font-size: 1rem; }
+
+    /* ══════════════════════════════════════
+       FORM CONTROLS
+    ══════════════════════════════════════ */
+    .form-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(200px,1fr)); gap: 16px; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group label { font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+                        letter-spacing: .08em; color: var(--muted); }
+    .form-group input, .form-group select, .form-group textarea {
+      background: var(--bg); border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm); color: var(--text);
+      font-family: var(--font-head); font-size: 0.88rem;
+      padding: 9px 12px; outline: none; transition: border-color .2s;
+    }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+      border-color: var(--accent);
+    }
+    .form-group input::placeholder { color: var(--muted2); }
+    .form-group select option { background: var(--surface2); }
+    .form-actions { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
+
+    /* ══════════════════════════════════════
+       BUTTONS
+    ══════════════════════════════════════ */
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-family: var(--font-head); font-weight: 600; font-size: 0.83rem;
+      padding: 9px 18px; border-radius: var(--radius-sm);
+      border: none; cursor: pointer; transition: all .2s; white-space: nowrap;
+    }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { background: var(--accent-hi); transform: translateY(-1px); box-shadow: 0 6px 20px var(--accent-glow); }
+    .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+    .btn-ghost:hover { border-color: var(--border-hi); color: var(--text); }
+    .btn-danger { background: rgba(239,68,68,.1); color: var(--red); border: 1px solid rgba(239,68,68,.25); }
+    .btn-danger:hover { background: rgba(239,68,68,.2); }
+    .btn-success { background: rgba(34,197,94,.1); color: var(--green); border: 1px solid rgba(34,197,94,.25); }
+    .btn-success:hover { background: rgba(34,197,94,.2); }
+    .btn-sm { padding: 5px 12px; font-size: 0.78rem; }
+
+    /* ══════════════════════════════════════
+       TABLE
+    ══════════════════════════════════════ */
+    .table-wrap { overflow-x: auto; border-radius: var(--radius-sm); border: 1px solid var(--border); }
+    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    thead { background: var(--surface2); }
+    th { padding: 10px 14px; text-align: left; font-size: 0.7rem; font-weight: 700;
+         text-transform: uppercase; letter-spacing: .07em; color: var(--muted);
+         border-bottom: 1px solid var(--border); white-space: nowrap; }
+    td { padding: 11px 14px; border-bottom: 1px solid var(--border); color: var(--text); vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(255,255,255,.02); }
+    .td-actions { display: flex; gap: 6px; }
+    .td-mono { font-family: var(--font-mono); font-size: 0.78rem; color: var(--muted); }
+
+    /* ══════════════════════════════════════
+       BADGES
+    ══════════════════════════════════════ */
+    .badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 0.7rem; font-weight: 700; padding: 3px 9px;
+      border-radius: 50px; white-space: nowrap;
+    }
+    .badge-green  { background: rgba(34,197,94,.1);  color: var(--green); border: 1px solid rgba(34,197,94,.25); }
+    .badge-red    { background: rgba(239,68,68,.1);  color: var(--red);   border: 1px solid rgba(239,68,68,.25); }
+    .badge-purple { background: var(--accent-glow);  color: var(--accent-hi); border: 1px solid rgba(124,58,237,.3); }
+    .badge-gold   { background: var(--gold-dim); color: var(--gold); border: 1px solid rgba(245,158,11,.3); }
+
+    /* ══════════════════════════════════════
+       CHECKBOX MATRIX (Permissões)
+    ══════════════════════════════════════ */
+    .matrix-table { width: 100%; }
+    .matrix-table th:not(:first-child) { text-align: center; }
+    .matrix-table td:not(:first-child) { text-align: center; }
+    .matrix-module-name { font-weight: 600; display: flex; align-items: center; gap: 8px; }
+    .matrix-module-name .mod-icon { font-size: 1rem; }
+
+    .cbx-wrap { display: flex; justify-content: center; }
+    .cbx-wrap input[type="checkbox"] { display: none; }
+    .cbx-wrap label {
+      width: 22px; height: 22px;
+      background: var(--bg); border: 2px solid var(--border);
+      border-radius: 5px; cursor: pointer; display: flex;
+      align-items: center; justify-content: center;
+      transition: all .15s; font-size: 0.7rem;
+    }
+    .cbx-wrap input:checked + label {
+      background: var(--accent); border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+    .cbx-wrap input:checked + label::after { content: '✓'; color: #fff; font-weight: 800; }
+
+    /* ══════════════════════════════════════
+       TOAST
+    ══════════════════════════════════════ */
+    #toast {
+      position: fixed; bottom: 24px; right: 24px;
+      background: var(--surface2); border: 1px solid var(--border-hi);
+      color: var(--text); font-size: 0.85rem; font-weight: 500;
+      padding: 12px 20px; border-radius: var(--radius);
+      box-shadow: 0 8px 30px rgba(0,0,0,.4);
+      transform: translateY(60px); opacity: 0;
+      transition: all .35s cubic-bezier(.34,1.56,.64,1);
+      pointer-events: none; z-index: 9999; max-width: 300px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    #toast.show { transform: translateY(0); opacity: 1; }
+
+    /* ══════════════════════════════════════
+       MODAL
+    ══════════════════════════════════════ */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,.7);
+      backdrop-filter: blur(6px); z-index: 500;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none; transition: opacity .2s;
+    }
+    .modal-overlay.open { opacity: 1; pointer-events: all; }
+    .modal {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 14px; padding: 28px; width: 90%; max-width: 520px;
+      transform: scale(.95); transition: transform .25s cubic-bezier(.34,1.56,.64,1);
+    }
+    .modal-overlay.open .modal { transform: scale(1); }
+    .modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; }
+    .modal-title { font-size: 1.05rem; font-weight: 800; }
+    .modal-close { background: none; border: none; color: var(--muted); font-size: 1.2rem; cursor: pointer; }
+    .modal-close:hover { color: var(--text); }
+    .modal-actions { display: flex; gap: 10px; margin-top: 22px; justify-content: flex-end; }
+
+    /* ══════════════════════════════════════
+       EMPTY STATE
+    ══════════════════════════════════════ */
+    .empty-state {
+      padding: 48px 0; text-align: center;
+      display: flex; flex-direction: column; align-items: center; gap: 12px;
+    }
+    .empty-state .empty-icon { font-size: 2.5rem; opacity: .4; }
+    .empty-state p { color: var(--muted); font-size: 0.88rem; }
+
+    /* ══════════════════════════════════════
+       DIVIDER
+    ══════════════════════════════════════ */
+    .divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+
+    /* ══════════════════════════════════════
+       RESPONSIVE
+    ══════════════════════════════════════ */
+    @media (max-width: 768px) {
+      .sidebar { width: 60px; }
+      .sidebar-logo .logo-text, .nav-item span:not(.ni-icon), .sidebar-footer strong,
+      .sidebar-footer p, .nav-label, .sidebar-logo .logo-badge { display: none; }
+      .main { margin-left: 60px; }
+      .content { padding: 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══ SIDEBAR ═══════════════════════════════════════════ -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <span class="logo-icon">🍇</span>
+    <div class="logo-text">Roots <span>Açaí</span></div>
+    <span class="logo-badge">ADMIN</span>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-label">Gestão de Perfis</div>
+    <div class="nav-item active" onclick="showScreen('usuarios')" id="nav-usuarios">
+      <span class="ni-icon">👤</span> <span>Usuários</span>
+    </div>
+    <div class="nav-item" onclick="showScreen('modulos')" id="nav-modulos">
+      <span class="ni-icon">📦</span> <span>Módulos</span>
+    </div>
+    <div class="nav-item" onclick="showScreen('perfis')" id="nav-perfis">
+      <span class="ni-icon">🔐</span> <span>Perfis</span>
+    </div>
+    <div class="nav-item" onclick="showScreen('permissoes')" id="nav-permissoes">
+      <span class="ni-icon">☑️</span> <span>Permissões</span>
+    </div>
+  </div>
+
+  <div class="sidebar-footer">
+    <strong>👑 Admin</strong>
+    <p>Roots Açaí Premium v2.1</p>
+  </div>
+</aside>
+
+<!-- ═══ MAIN ═══════════════════════════════════════════════ -->
+<main class="main">
+
+  <div class="topbar">
+    <div>
+      <div class="topbar-title" id="topbar-title">Configuração de Usuários</div>
+      <div class="topbar-crumb" id="topbar-crumb">Gestão de Perfis → Usuários</div>
+    </div>
+    <div class="topbar-right">
+      <span class="topbar-tag">Entrega 01</span>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ═══════════════════════════════════════════════════
+         TELA 1: CONFIGURAÇÃO DE USUÁRIOS
+    ════════════════════════════════════════════════════ -->
+    <div class="screen active" id="screen-usuarios">
+      <div class="page-header">
+        <h1>👤 Configuração de Usuários</h1>
+        <p>Inclua, altere, liste e desative usuários do sistema.</p>
+      </div>
+
+      <!-- Formulário -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title"><span>➕</span> Incluir / Editar Usuário</div>
+          <button class="btn btn-ghost btn-sm" onclick="limparFormUsuario()">Limpar</button>
+        </div>
+        <input type="hidden" id="u-id"/>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Nome completo</label>
+            <input type="text" id="u-nome" placeholder="Ex: Maria Silva"/>
+          </div>
+          <div class="form-group">
+            <label>Login</label>
+            <input type="text" id="u-login" placeholder="Ex: maria"/>
+          </div>
+          <div class="form-group">
+            <label>Senha</label>
+            <input type="password" id="u-senha" placeholder="Mín. 4 caracteres"/>
+          </div>
+          <div class="form-group">
+            <label>Perfil</label>
+            <select id="u-perfil"></select>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-primary" onclick="salvarUsuario()">💾 Salvar Usuário</button>
+          <button class="btn btn-ghost" onclick="limparFormUsuario()">Cancelar</button>
+        </div>
+      </div>
+
+      <!-- Tabela -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title"><span>📋</span> Usuários Cadastrados</div>
+          <span id="u-count" class="badge badge-purple">0 registros</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th><th>Nome</th><th>Login</th><th>Perfil</th>
+                <th>Último Acesso</th><th>Status</th><th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="u-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════
+         TELA 2: CONFIGURAÇÃO DE MÓDULOS
+    ════════════════════════════════════════════════════ -->
+    <div class="screen" id="screen-modulos">
+      <div class="page-header">
+        <h1>📦 Configuração de Módulos</h1>
+        <p>Gerencie as funcionalidades disponíveis no sistema.</p>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title"><span>➕</span> Incluir / Editar Módulo</div>
+          <button class="btn btn-ghost btn-sm" onclick="limparFormModulo()">Limpar</button>
+        </div>
+        <input type="hidden" id="m-id"/>
+        <div class="form-grid">
+          <div class="form-group" style="grid-column:span 2">
+            <label>Nome do Módulo</label>
+            <input type="text" id="m-nome" placeholder="Ex: Financeiro, Estoque, Atendimento"/>
+          </div>
+          <div class="form-group" style="grid-column:span 2">
+            <label>Descrição</label>
+            <input type="text" id="m-descricao" placeholder="Breve descrição da funcionalidade"/>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-primary" onclick="salvarModulo()">💾 Salvar Módulo</button>
+          <button class="btn btn-ghost" onclick="limparFormModulo()">Cancelar</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title"><span>📋</span> Módulos Cadastrados</div>
+          <span id="m-count" class="badge badge-purple">0 registros</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>#</th><th>Nome</th><th>Descrição</th><th>Status</th><th>Ações</th></tr>
+            </thead>
+            <tbody id="m-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════
+         TELA 3: CONFIGURAÇÃO DE PERFIS
+    ════════════════════════════════════════════════════ -->
+    <div class="screen" id="screen-perfis">
+      <div class="page-header">
+        <h1>🔐 Configuração de Perfis</h1>
+        <p>Gerencie os perfis de acesso do sistema.</p>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title"><span>➕</span> Incluir / Editar Perfil</div>
+          <button class="btn btn-ghost btn-sm" onclick="limparFormPerfil()">Limpar</button>
+        </div>
+        <input type="hidden" id="p-id"/>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Nome do Perfil</label>
+            <input type="text" id="p-nome" placeholder="Ex: Gerente, Vendedor, Atendente"/>
+          </div>
+          <div class="form-group">
+            <label>Status</label>
+            <select id="p-ativo">
+              <option value="true">✅ Ativo</option>
+              <option value="false">❌ Inativo</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-primary" onclick="salvarPerfil()">💾 Salvar Perfil</button>
+          <button class="btn btn-ghost" onclick="limparFormPerfil()">Cancelar</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title"><span>📋</span> Perfis Cadastrados</div>
+          <span id="p-count" class="badge badge-purple">0 registros</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>#</th><th>Nome</th><th>Usuários</th><th>Status</th><th>Ações</th></tr>
+            </thead>
+            <tbody id="p-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════
+         TELA 4: CONFIGURAÇÃO DE PERMISSÕES (Checkboxes)
+    ════════════════════════════════════════════════════ -->
+    <div class="screen" id="screen-permissoes">
+      <div class="page-header">
+        <h1>☑️ Configuração de Permissões</h1>
+        <p>Selecione o perfil e marque os checkboxes de acesso para cada módulo.</p>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title"><span>🔍</span> Selecionar Perfil</div>
+        </div>
+        <div class="form-grid" style="max-width:340px">
+          <div class="form-group">
+            <label>Perfil</label>
+            <select id="perm-perfil-sel" onchange="renderMatriz()"></select>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel" id="matriz-panel">
+        <div class="panel-header">
+          <div class="panel-title" id="matriz-titulo"><span>🗺</span> Matriz de Permissões</div>
+          <button class="btn btn-primary" onclick="salvarPermissoes()">💾 Salvar Permissões</button>
+        </div>
+        <div class="table-wrap">
+          <table class="matrix-table">
+            <thead>
+              <tr>
+                <th>Módulo</th>
+                <th>👁 Visualizar</th>
+                <th>✏️ Editar</th>
+                <th>🗑 Excluir</th>
+              </tr>
+            </thead>
+            <tbody id="matriz-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</main>
+
+<!-- ═══ TOAST ══════════════════════════════════════════════ -->
+<div id="toast"></div>
+
+<script>
+/* ════════════════════════════════════════════════════════════
+   DATABASE — localStorage como banco relacional simulado
+   Tabelas: usuarios, perfis, modulos, permissoes
+════════════════════════════════════════════════════════════ */
+const DB = (() => {
+  const KEY = 'roots_acai_admin_v3';
+  let db;
+
+  function load() {
+    try { db = JSON.parse(localStorage.getItem(KEY)) || seed(); }
+    catch { db = seed(); }
+    return db;
+  }
+
+  function save() { localStorage.setItem(KEY, JSON.stringify(db)); }
+
+  function seed() {
+    const ICONS = { 'Financeiro':'💰','Estoque':'📦','Atendimento':'🎧',
+                    'Relatórios':'📊','Configurações':'⚙️','Usuários':'👤' };
+    const d = {
+      seq: { usuarios:5, perfis:5, modulos:7, permissoes:20 },
+      perfis: [
+        { id:1, nome:'Administrador', ativo:true },
+        { id:2, nome:'Cliente',       ativo:true },
+        { id:3, nome:'Preparador',    ativo:true },
+        { id:4, nome:'Motoboy',       ativo:true },
+      ],
+      modulos: [
+        { id:1, nome:'Financeiro',    descricao:'Fluxo de caixa e receitas', ativo:true },
+        { id:2, nome:'Estoque',       descricao:'Controle de ingredientes',  ativo:true },
+        { id:3, nome:'Atendimento',   descricao:'Abertura de pedidos',       ativo:true },
+        { id:4, nome:'Relatórios',    descricao:'Dashboards e exportações',  ativo:true },
+        { id:5, nome:'Configurações', descricao:'Parâmetros do sistema',     ativo:true },
+        { id:6, nome:'Usuários',      descricao:'Gestão de usuários/perfis', ativo:true },
+      ],
+      usuarios: [
+        { id:1, nome:'Administrador', login:'admin',   senha:'admin123', perfilId:1, ativo:true, ultimoAcesso:'14/05/2025 09:00:00' },
+        { id:2, nome:'Maria Silva',   login:'maria',   senha:'maria456', perfilId:2, ativo:true, ultimoAcesso:'13/05/2025 14:22:00' },
+        { id:3, nome:'Letícia Lima',  login:'leticia', senha:'leti789',  perfilId:3, ativo:true, ultimoAcesso:'12/05/2025 08:15:00' },
+        { id:4, nome:'Carlos Moto',   login:'carlos',  senha:'moto321',  perfilId:4, ativo:true, ultimoAcesso:'10/05/2025 17:40:00' },
+      ],
+      permissoes: [
+        // Administrador → tudo
+        { id:1,  perfilId:1, moduloId:1, viz:true,  edit:true,  excl:true  },
+        { id:2,  perfilId:1, moduloId:2, viz:true,  edit:true,  excl:true  },
+        { id:3,  perfilId:1, moduloId:3, viz:true,  edit:true,  excl:true  },
+        { id:4,  perfilId:1, moduloId:4, viz:true,  edit:true,  excl:true  },
+        { id:5,  perfilId:1, moduloId:5, viz:true,  edit:true,  excl:true  },
+        { id:6,  perfilId:1, moduloId:6, viz:true,  edit:true,  excl:true  },
+        // Cliente → só visualiza Atendimento
+        { id:7,  perfilId:2, moduloId:3, viz:true,  edit:false, excl:false },
+        // Preparador → edita Atendimento e Estoque
+        { id:8,  perfilId:3, moduloId:2, viz:true,  edit:true,  excl:false },
+        { id:9,  perfilId:3, moduloId:3, viz:true,  edit:true,  excl:false },
+        // Motoboy → só visualiza Atendimento
+        { id:10, perfilId:4, moduloId:3, viz:true,  edit:false, excl:false },
+      ]
+    };
+    localStorage.setItem(KEY, JSON.stringify(d));
+    return d;
+  }
+
+  load();
+
+  return {
+    /* USUÁRIOS */
+    getUsuarios()         { return db.usuarios; },
+    addUsuario(u)         { u.id = ++db.seq.usuarios; db.usuarios.push(u); save(); return u; },
+    updateUsuario(id, up) {
+      const i = db.usuarios.findIndex(u=>u.id===id);
+      if(i<0) return false;
+      db.usuarios[i] = {...db.usuarios[i], ...up}; save(); return true;
+    },
+    desativarUsuario(id) {
+      return this.updateUsuario(id, { ativo: false });
+    },
+    findUsuarioByLogin(login) { return db.usuarios.find(u=>u.login===login); },
+    /* PERFIS */
+    getPerfis()          { return db.perfis; },
+    addPerfil(p)         { p.id = ++db.seq.perfis; db.perfis.push(p); save(); return p; },
+    updatePerfil(id, up) {
+      const i = db.perfis.findIndex(p=>p.id===id);
+      if(i<0) return false;
+      db.perfis[i] = {...db.perfis[i],...up}; save(); return true;
+    },
+    findPerfil(id)       { return db.perfis.find(p=>p.id===id); },
+    /* MÓDULOS */
+    getModulos()         { return db.modulos; },
+    addModulo(m)         { m.id = ++db.seq.modulos; db.modulos.push(m); save(); return m; },
+    updateModulo(id, up) {
+      const i = db.modulos.findIndex(m=>m.id===id);
+      if(i<0) return false;
+      db.modulos[i] = {...db.modulos[i],...up}; save(); return true;
+    },
+    findModulo(id)       { return db.modulos.find(m=>m.id===id); },
+    /* PERMISSÕES */
+    getPermissoes()                     { return db.permissoes; },
+    getPermByPerfil(perfilId)           { return db.permissoes.filter(p=>p.perfilId===perfilId); },
+    getPermByPerfilModulo(pId,mId)      { return db.permissoes.find(p=>p.perfilId===pId&&p.moduloId===mId); },
+    upsertPerm(perfilId,moduloId,viz,edit,excl) {
+      const idx = db.permissoes.findIndex(p=>p.perfilId===perfilId&&p.moduloId===moduloId);
+      const obj = { perfilId, moduloId, viz, edit, excl };
+      if(idx>=0) { db.permissoes[idx]={...db.permissoes[idx],...obj}; }
+      else { obj.id = ++db.seq.permissoes; db.permissoes.push(obj); }
+      save();
+    },
+  };
+})();
+
+/* ════════════════════════════════════════════════════════════
+   NAVEGAÇÃO
+════════════════════════════════════════════════════════════ */
+const screenMeta = {
+  usuarios:   { title: 'Configuração de Usuários',   crumb: 'Gestão de Perfis → Usuários',    nav: 'nav-usuarios'  },
+  modulos:    { title: 'Configuração de Módulos',    crumb: 'Gestão de Perfis → Módulos',     nav: 'nav-modulos'   },
+  perfis:     { title: 'Configuração de Perfis',     crumb: 'Gestão de Perfis → Perfis',      nav: 'nav-perfis'    },
+  permissoes: { title: 'Configuração de Permissões', crumb: 'Gestão de Perfis → Permissões',  nav: 'nav-permissoes'},
+};
+
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+  document.getElementById(screenMeta[name].nav).classList.add('active');
+  document.getElementById('topbar-title').textContent = screenMeta[name].title;
+  document.getElementById('topbar-crumb').textContent = screenMeta[name].crumb;
+  if (name === 'usuarios')   renderUsuarios();
+  if (name === 'modulos')    renderModulos();
+  if (name === 'perfis')     renderPerfis();
+  if (name === 'permissoes') initPermissoes();
+}
+
+/* ════════════════════════════════════════════════════════════
+   TOAST
+════════════════════════════════════════════════════════════ */
+function toast(msg, ok = true) {
+  const t = document.getElementById('toast');
+  t.innerHTML = `<span>${ok ? '✅' : '❌'}</span> ${msg}`;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+/* ════════════════════════════════════════════════════════════
+   TELA 1 — USUÁRIOS
+════════════════════════════════════════════════════════════ */
+function renderUsuarios() {
+  // Preenche select de perfis
+  const sel = document.getElementById('u-perfil');
+  sel.innerHTML = DB.getPerfis().filter(p=>p.ativo).map(p =>
+    `<option value="${p.id}">${p.nome}</option>`).join('');
+
+  const tbody = document.getElementById('u-tbody');
+  const usuarios = DB.getUsuarios();
+  document.getElementById('u-count').textContent = `${usuarios.length} registros`;
+
+  if (!usuarios.length) {
+    tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state">
+      <div class="empty-icon">👤</div><p>Nenhum usuário cadastrado.</p></div></td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = usuarios.map(u => {
+    const perfil = DB.findPerfil(u.perfilId);
+    return `<tr>
+      <td class="td-mono">#${u.id}</td>
+      <td><strong>${u.nome}</strong></td>
+      <td class="td-mono">${u.login}</td>
+      <td><span class="badge badge-purple">${perfil ? perfil.nome : '—'}</span></td>
+      <td class="td-mono" style="font-size:.75rem">${u.ultimoAcesso || '—'}</td>
+      <td>${u.ativo
+        ? '<span class="badge badge-green">● Ativo</span>'
+        : '<span class="badge badge-red">● Inativo</span>'}</td>
+      <td><div class="td-actions">
+        <button class="btn btn-ghost btn-sm" onclick="editarUsuario(${u.id})">✏️ Editar</button>
+        ${u.ativo
+          ? `<button class="btn btn-danger btn-sm" onclick="desativarUsuario(${u.id})">🚫 Desativar</button>`
+          : `<button class="btn btn-success btn-sm" onclick="ativarUsuario(${u.id})">✅ Ativar</button>`}
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+function salvarUsuario() {
+  const id    = document.getElementById('u-id').value;
+  const nome  = document.getElementById('u-nome').value.trim();
+  const login = document.getElementById('u-login').value.trim().toLowerCase();
+  const senha = document.getElementById('u-senha').value.trim();
+  const perfilId = parseInt(document.getElementById('u-perfil').value);
+
+  if (!nome)  { toast('Nome obrigatório.', false); return; }
+  if (!login) { toast('Login obrigatório.', false); return; }
+
+  if (id) {
+    // Alterar
+    const upd = { nome, perfilId };
+    if (senha.length >= 4) upd.senha = senha;
+    else if (senha.length > 0) { toast('Senha deve ter mínimo 4 caracteres.', false); return; }
+    DB.updateUsuario(parseInt(id), upd);
+    toast(`Usuário #${id} atualizado!`);
+  } else {
+    // Incluir
+    if (senha.length < 4) { toast('Senha deve ter mínimo 4 caracteres.', false); return; }
+    if (DB.findUsuarioByLogin(login)) { toast(`Login '${login}' já existe.`, false); return; }
+    DB.addUsuario({ nome, login, senha, perfilId, ativo: true,
+                    ultimoAcesso: new Date().toLocaleString('pt-BR') });
+    toast(`Usuário '${login}' incluído!`);
+  }
+  limparFormUsuario();
+  renderUsuarios();
+}
+
+function editarUsuario(id) {
+  const u = DB.getUsuarios().find(x => x.id === id);
+  if (!u) return;
+  document.getElementById('u-id').value    = u.id;
+  document.getElementById('u-nome').value  = u.nome;
+  document.getElementById('u-login').value = u.login;
+  document.getElementById('u-senha').value = '';
+  document.getElementById('u-perfil').value = u.perfilId;
+  document.getElementById('u-nome').focus();
+}
+
+function desativarUsuario(id) {
+  if (!confirm(`Desativar usuário #${id}?`)) return;
+  DB.desativarUsuario(id);
+  toast(`Usuário #${id} desativado.`);
+  renderUsuarios();
+}
+
+function ativarUsuario(id) {
+  DB.updateUsuario(id, { ativo: true });
+  toast(`Usuário #${id} reativado!`);
+  renderUsuarios();
+}
+
+function limparFormUsuario() {
+  ['u-id','u-nome','u-login','u-senha'].forEach(i => document.getElementById(i).value = '');
+}
+
+/* ════════════════════════════════════════════════════════════
+   TELA 2 — MÓDULOS
+════════════════════════════════════════════════════════════ */
+function renderModulos() {
+  const tbody = document.getElementById('m-tbody');
+  const modulos = DB.getModulos();
+  document.getElementById('m-count').textContent = `${modulos.length} registros`;
+
+  if (!modulos.length) {
+    tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state">
+      <div class="empty-icon">📦</div><p>Nenhum módulo cadastrado.</p></div></td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = modulos.map(m => `<tr>
+    <td class="td-mono">#${m.id}</td>
+    <td><strong>${m.nome}</strong></td>
+    <td style="color:var(--muted);font-size:.83rem">${m.descricao || '—'}</td>
+    <td>${m.ativo
+      ? '<span class="badge badge-green">● Ativo</span>'
+      : '<span class="badge badge-red">● Inativo</span>'}</td>
+    <td><div class="td-actions">
+      <button class="btn btn-ghost btn-sm" onclick="editarModulo(${m.id})">✏️ Editar</button>
+      ${m.ativo
+        ? `<button class="btn btn-danger btn-sm" onclick="desativarModulo(${m.id})">🚫 Desativar</button>`
+        : `<button class="btn btn-success btn-sm" onclick="ativarModulo(${m.id})">✅ Ativar</button>`}
+    </div></td>
+  </tr>`).join('');
+}
+
+function salvarModulo() {
+  const id   = document.getElementById('m-id').value;
+  const nome = document.getElementById('m-nome').value.trim();
+  const desc = document.getElementById('m-descricao').value.trim();
+  if (!nome) { toast('Nome do módulo obrigatório.', false); return; }
+
+  if (id) {
+    DB.updateModulo(parseInt(id), { nome, descricao: desc });
+    toast(`Módulo '${nome}' atualizado!`);
+  } else {
+    DB.addModulo({ nome, descricao: desc, ativo: true });
+    toast(`Módulo '${nome}' incluído!`);
+  }
+  limparFormModulo();
+  renderModulos();
+}
+
+function editarModulo(id) {
+  const m = DB.findModulo(id);
+  if (!m) return;
+  document.getElementById('m-id').value        = m.id;
+  document.getElementById('m-nome').value      = m.nome;
+  document.getElementById('m-descricao').value = m.descricao || '';
+  document.getElementById('m-nome').focus();
+}
+
+function desativarModulo(id) {
+  if (!confirm(`Desativar módulo #${id}?`)) return;
+  DB.updateModulo(id, { ativo: false });
+  toast(`Módulo #${id} desativado.`);
+  renderModulos();
+}
+
+function ativarModulo(id) {
+  DB.updateModulo(id, { ativo: true });
+  toast('Módulo reativado!');
+  renderModulos();
+}
+
+function limparFormModulo() {
+  ['m-id','m-nome','m-descricao'].forEach(i => document.getElementById(i).value = '');
+}
+
+/* ════════════════════════════════════════════════════════════
+   TELA 3 — PERFIS
+════════════════════════════════════════════════════════════ */
+function renderPerfis() {
+  const tbody = document.getElementById('p-tbody');
+  const perfis = DB.getPerfis();
+  document.getElementById('p-count').textContent = `${perfis.length} registros`;
+
+  tbody.innerHTML = perfis.map(p => {
+    const usersCount = DB.getUsuarios().filter(u => u.perfilId === p.id).length;
+    return `<tr>
+      <td class="td-mono">#${p.id}</td>
+      <td><strong>${p.nome}</strong></td>
+      <td><span class="badge badge-gold">${usersCount} usuário(s)</span></td>
+      <td>${p.ativo
+        ? '<span class="badge badge-green">● Ativo</span>'
+        : '<span class="badge badge-red">● Inativo</span>'}</td>
+      <td><div class="td-actions">
+        <button class="btn btn-ghost btn-sm" onclick="editarPerfil(${p.id})">✏️ Editar</button>
+        <button class="btn btn-primary btn-sm" onclick="irParaPermissao(${p.id})">☑️ Permissões</button>
+        ${p.ativo
+          ? `<button class="btn btn-danger btn-sm" onclick="togglePerfil(${p.id},false)">🚫 Desativar</button>`
+          : `<button class="btn btn-success btn-sm" onclick="togglePerfil(${p.id},true)">✅ Ativar</button>`}
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+function salvarPerfil() {
+  const id   = document.getElementById('p-id').value;
+  const nome = document.getElementById('p-nome').value.trim();
+  const ativo = document.getElementById('p-ativo').value === 'true';
+  if (!nome) { toast('Nome do perfil obrigatório.', false); return; }
+  if (id) {
+    DB.updatePerfil(parseInt(id), { nome, ativo });
+    toast(`Perfil '${nome}' atualizado!`);
+  } else {
+    DB.addPerfil({ nome, ativo: true });
+    toast(`Perfil '${nome}' incluído!`);
+  }
+  limparFormPerfil();
+  renderPerfis();
+}
+
+function editarPerfil(id) {
+  const p = DB.findPerfil(id);
+  if (!p) return;
+  document.getElementById('p-id').value    = p.id;
+  document.getElementById('p-nome').value  = p.nome;
+  document.getElementById('p-ativo').value = String(p.ativo);
+  document.getElementById('p-nome').focus();
+}
+
+function togglePerfil(id, val) {
+  DB.updatePerfil(id, { ativo: val });
+  toast(val ? 'Perfil reativado!' : 'Perfil desativado.');
+  renderPerfis();
+}
+
+function limparFormPerfil() {
+  ['p-id','p-nome'].forEach(i => document.getElementById(i).value = '');
+  document.getElementById('p-ativo').value = 'true';
+}
+
+function irParaPermissao(perfilId) {
+  showScreen('permissoes');
+  document.getElementById('perm-perfil-sel').value = perfilId;
+  renderMatriz();
+}
+
+/* ════════════════════════════════════════════════════════════
+   TELA 4 — PERMISSÕES (CHECKBOXES)
+════════════════════════════════════════════════════════════ */
+function initPermissoes() {
+  const sel = document.getElementById('perm-perfil-sel');
+  sel.innerHTML = DB.getPerfis().map(p =>
+    `<option value="${p.id}">${p.nome}${p.ativo ? '' : ' (inativo)'}</option>`).join('');
+  renderMatriz();
+}
+
+function renderMatriz() {
+  const perfilId = parseInt(document.getElementById('perm-perfil-sel').value);
+  const perfil   = DB.findPerfil(perfilId);
+  const modulos  = DB.getModulos().filter(m => m.ativo);
+  const perms    = DB.getPermByPerfil(perfilId);
+
+  document.getElementById('matriz-titulo').innerHTML =
+    `<span>🗺</span> Permissões — ${perfil ? perfil.nome : ''}`;
+
+  const ICONS = { 'Financeiro':'💰','Estoque':'📦','Atendimento':'🎧',
+                  'Relatórios':'📊','Configurações':'⚙️','Usuários':'👤' };
+
+  document.getElementById('matriz-tbody').innerHTML = modulos.map(m => {
+    const perm = perms.find(p => p.moduloId === m.id) || { viz:false, edit:false, excl:false };
+    const icon = ICONS[m.nome] || '📋';
+    const uid  = `perm_${perfilId}_${m.id}`;
+    return `<tr>
+      <td>
+        <div class="matrix-module-name">
+          <span class="mod-icon">${icon}</span>
+          <div>
+            <div>${m.nome}</div>
+            <div style="font-size:.73rem;color:var(--muted)">${m.descricao||''}</div>
+          </div>
+        </div>
+      </td>
+      <td>
+        <div class="cbx-wrap">
+          <input type="checkbox" id="${uid}_viz"  ${perm.viz  ? 'checked' : ''}
+                 onchange="cbxGuard('${uid}')"/>
+          <label for="${uid}_viz"></label>
+        </div>
+      </td>
+      <td>
+        <div class="cbx-wrap">
+          <input type="checkbox" id="${uid}_edit" ${perm.edit ? 'checked' : ''}
+                 onchange="cbxGuard('${uid}')"/>
+          <label for="${uid}_edit"></label>
+        </div>
+      </td>
+      <td>
+        <div class="cbx-wrap">
+          <input type="checkbox" id="${uid}_excl" ${perm.excl ? 'checked' : ''}
+                 onchange="cbxGuard('${uid}')"/>
+          <label for="${uid}_excl"></label>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+/* Regra: sem "Visualizar" → desmarca Editar e Excluir */
+function cbxGuard(uid) {
+  const viz  = document.getElementById(uid + '_viz');
+  const edit = document.getElementById(uid + '_edit');
+  const excl = document.getElementById(uid + '_excl');
+  if (!viz.checked) { edit.checked = false; excl.checked = false; }
+}
+
+function salvarPermissoes() {
+  const perfilId = parseInt(document.getElementById('perm-perfil-sel').value);
+  const modulos  = DB.getModulos().filter(m => m.ativo);
+  let count = 0;
+
+  modulos.forEach(m => {
+    const uid  = `perm_${perfilId}_${m.id}`;
+    const viz  = document.getElementById(uid + '_viz')?.checked  ?? false;
+    const edit = document.getElementById(uid + '_edit')?.checked ?? false;
+    const excl = document.getElementById(uid + '_excl')?.checked ?? false;
+    DB.upsertPerm(perfilId, m.id, viz, edit, excl);
+    count++;
+  });
+
+  toast(`✅ ${count} permissão(ões) salva(s) para ${DB.findPerfil(perfilId)?.nome}!`);
+}
+
+/* ════════════════════════════════════════════════════════════
+   INIT
+════════════════════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', () => {
+  renderUsuarios();
+  console.log('%c🍇 Roots Açaí Admin', 'color:#9B5FF5;font-weight:bold;font-size:1.1rem');
+  console.log('DB:', JSON.parse(localStorage.getItem('roots_acai_admin_v3')));
+});
+</script>
+</body>
+</html>
