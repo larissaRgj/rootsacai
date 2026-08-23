@@ -34,6 +34,8 @@ public List<Pedido> listar() {
 @PostMapping
 public Pedido salvar(@RequestBody Pedido pedido) {
 
+    System.out.println("PEDIDO RECEBIDO = " + pedido);
+
     if (pedido.getStatus() == null) {
         pedido.setStatus("aguardando");
     }

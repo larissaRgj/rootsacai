@@ -221,7 +221,7 @@
 <div id="root"></div>
 
 <script type="text/babel">
-const API = 'http://localhost:8081';
+const API_URL = "https://rootsacai.onrender.com";
 
 // ─── API helper ───────────────────────────────────────────
 async function api(path, method = 'GET', body = null, token = null) {
@@ -231,7 +231,7 @@ async function api(path, method = 'GET', body = null, token = null) {
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const res = await fetch(API + path, {
+  const res = await fetch(API_URL + path, {
     method,
     headers,
     body: body ? JSON.stringify(body) : undefined
@@ -372,7 +372,13 @@ onLogin({
     setLoading(true);
     try {
       // Tenta API real
-      await api('/usuarios', 'POST', { nome: cNome, login: cLogin, senha: cSenha, perfilId: { Cliente:2, Preparador:3, Motoboy:4, Administrador:1 }[cPerfil] });
+      await api('/usuarios', 'POST', {
+  nome: cNome,
+  email: cLogin,
+  senha: cSenha,
+  perfilId: { Cliente:2, Preparador:3, Motoboy:4, Administrador:1 }[cPerfil],
+  ativo: true
+}); 
     } catch {
       // Fallback demo: salva localmente
       const newId = demoUsers.length + 1;
@@ -575,21 +581,28 @@ function TelaCliente({ user, token, onLogout, showToast }) {
   const [enviando, setEnviando] = React.useState(false);
 
   React.useEffect(() => {
-  fetch('http://localhost:8081/produtos')
-    .then(res => res.json())
+  fetch('https://rootsacai.onrender.com/produtos')
+    .then(res => {
+      console.log("STATUS:", res.status);
+      return res.json();
+    })
     .then(data => {
+      console.log("PRODUTOS:", data);
+
       setTamanhos(data);
 
       if (data.length > 0) {
         setTamanho(data[0]);
       }
+    })
+    .catch(err => {
+      console.error("ERRO FETCH:", err);
     });
 }, []);
 
 if (!tamanho) {
-  return <div>Carregando produtos...</div>;
+  return <div>Nenhum produto cadastrado</div>;
 }
-  
   const ADICIONAIS = [
     { nome: 'Granola',            preco: 2.00 },
     { nome: 'Leite condensado',   preco: 3.00 },
@@ -611,23 +624,30 @@ if (!tamanho) {
   adicionais.reduce((s, a) => s + a.preco, 0);
 
   async function confirmar() {
-    console.log("USER =", user);
-    setEnviando(true);
-    try {
-      await api('/pedidos', 'POST', {
-      tamanho: produto.nome,
-      total: totalPedido,
+
+  console.log("USER =", user);
+  console.log("TAMANHO =", tamanho);
+
+  setEnviando(true);
+
+  try {
+
+    await api('/pedidos', 'POST', {
+      tamanho: tamanho.nome,
+      total: tamanho.preco,
       clienteId: user.id,
       clienteNome: user.nome,
       clienteTel: user.telefone
-      }, token);
-      showToast('✅ Pedido confirmado! Aguarde o preparo.');
-    } catch {
-      showToast('✅ Pedido #' + Math.floor(Math.random()*900+100) + ' confirmado! (demo)');
-    }
-    setAdicionais([]);
-    setEnviando(false);
+    }, token);
+
+    showToast('✅ Pedido confirmado!');
+
+  } catch (e) {
+    console.error("ERRO =", e);
   }
+
+  setEnviando(false);
+}
 
   return (
     <>
