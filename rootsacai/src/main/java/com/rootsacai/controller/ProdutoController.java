@@ -1,67 +1,76 @@
 package com.rootsacai.controller;
 
-import java.util.List;
-import java.util.Optional;
-
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 import com.rootsacai.model.Produto;
 import com.rootsacai.repository.ProdutoRepository;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/produtos")
 @CrossOrigin(origins = "*")
 public class ProdutoController {
 
-    private final ProdutoRepository repository;
+    @Autowired
+    private ProdutoRepository produtoRepository;
 
-    public ProdutoController(ProdutoRepository repository) {
-        this.repository = repository;
-    }
-
-    // Listar todos
     @GetMapping
-    public List<Produto> listar() {
-        return repository.findAll();
+    public ResponseEntity<List<Produto>> listar() {
+        return ResponseEntity.ok(produtoRepository.findAll());
     }
 
-    // Buscar por ID
     @GetMapping("/{id}")
-    public Optional<Produto> buscarPorId(@PathVariable Long id) {
-        return repository.findById(id);
+    public ResponseEntity<?> obter(@PathVariable Long id) {
+        Optional<Produto> produto = produtoRepository.findById(id);
+        if (produto.isPresent()) {
+            return ResponseEntity.ok(produto.get());
+        }
+        return ResponseEntity.status(404).body(Map.of("erro", "Produto não encontrado"));
     }
 
-    // Cadastrar
     @PostMapping
-    public Produto salvar(@RequestBody Produto produto) {
-        return repository.save(produto);
+    public ResponseEntity<?> criar(@RequestBody ProdutoRequest request) {
+        try {
+            Produto produto = new Produto();
+            produto.setNome(request.getNome());
+            produto.setPreco(request.getPreco());
+            Produto salvo = produtoRepository.save(produto);
+            return ResponseEntity.ok(salvo);
+        } catch (Exception e) {
+            return ResponseEntity.status(400).body(Map.of("erro", e.getMessage()));
+        }
     }
 
-    // Atualizar
     @PutMapping("/{id}")
-    public Produto atualizar(@PathVariable Long id,
-                             @RequestBody Produto produtoAtualizado) {
-
-        Produto produto = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Produto não encontrado"));
-
-        produto.setNome(produtoAtualizado.getNome());
-        produto.setPreco(produtoAtualizado.getPreco());
-
-        return repository.save(produto);
+    public ResponseEntity<?> atualizar(@PathVariable Long id, @RequestBody ProdutoRequest request) {
+        Optional<Produto> produto = produtoRepository.findById(id);
+        if (produto.isPresent()) {
+            Produto p = produto.get();
+            p.setNome(request.getNome());
+            p.setPreco(request.getPreco());
+            Produto atualizado = produtoRepository.save(p);
+            return ResponseEntity.ok(atualizado);
+        }
+        return ResponseEntity.status(404).body(Map.of("erro", "Produto não encontrado"));
     }
 
-    // Excluir
     @DeleteMapping("/{id}")
-    public void excluir(@PathVariable Long id) {
-        repository.deleteById(id);
+    public ResponseEntity<?> deletar(@PathVariable Long id) {
+        if (produtoRepository.existsById(id)) {
+            produtoRepository.deleteById(id);
+            return ResponseEntity.ok(Map.of("msg", "Produto deletado com sucesso"));
+        }
+        return ResponseEntity.status(404).body(Map.of("erro", "Produto não encontrado"));
+    }
+
+    public static class ProdutoRequest {
+        public String nome;
+        public double preco;
+
+        public String getNome() { return nome; }
+        public double getPreco() { return preco; }
     }
 }
