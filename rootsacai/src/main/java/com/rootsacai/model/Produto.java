@@ -1,15 +1,24 @@
 package com.rootsacai.model;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 @Entity
-public class Produto{
+@Table(name = "produto")
+public class Produto {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "nome")
     private String nome;
+
+    @Column(name = "preco")
     private Double preco;
 
     public Long getId() {
