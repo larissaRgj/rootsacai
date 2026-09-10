@@ -3,12 +3,16 @@ package com.rootsacai;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 
+import com.rootsacai.config.CorsProperties;
+import com.rootsacai.config.JwtProperties;
 import com.rootsacai.model.Produto;
 import com.rootsacai.repository.ProdutoRepository;
 
 @SpringBootApplication
+@EnableConfigurationProperties({JwtProperties.class, CorsProperties.class})
 public class RootsacaiApplication {
 
 	public static void main(String[] args) {

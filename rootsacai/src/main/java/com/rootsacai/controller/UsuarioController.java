@@ -1,6 +1,7 @@
 package com.rootsacai.controller;
 
 import java.util.List;
+import java.util.Objects;
 
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -30,6 +31,7 @@ public class UsuarioController {
 
     @PostMapping
     public Usuario salvar(@RequestBody Usuario usuario) {
-        return repository.save(usuario);
+        Usuario usuarioValidado = Objects.requireNonNull(usuario, "Usuário não pode ser nulo");
+        return repository.save(usuarioValidado);
     }
 }

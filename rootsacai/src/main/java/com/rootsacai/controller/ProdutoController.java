@@ -1,8 +1,9 @@
 package com.rootsacai.controller;
 
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,54 +15,63 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.rootsacai.model.Produto;
-import com.rootsacai.repository.ProdutoRepository;
+import com.rootsacai.service.ProdutoService;
 
 @RestController
 @RequestMapping("/produtos")
 @CrossOrigin(origins = "*")
 public class ProdutoController {
 
-    private final ProdutoRepository repository;
+    private final ProdutoService produtoService;
 
-    public ProdutoController(ProdutoRepository repository) {
-        this.repository = repository;
+    public ProdutoController(ProdutoService produtoService) {
+        this.produtoService = produtoService;
     }
 
-    // Listar todos
     @GetMapping
-    public List<Produto> listar() {
-        return repository.findAll();
+    public ResponseEntity<List<Produto>> listar() {
+        return ResponseEntity.ok(produtoService.listarTodos());
     }
 
-    // Buscar por ID
     @GetMapping("/{id}")
-    public Optional<Produto> buscarPorId(@PathVariable Long id) {
-        return repository.findById(id);
+    public ResponseEntity<?> obter(@PathVariable Long id) {
+        Produto produto = produtoService.buscarPorId(id).orElse(null);
+        if (produto == null) {
+            return ResponseEntity.status(404).body(Map.of("erro", "Produto não encontrado"));
+        }
+        return ResponseEntity.ok(produto);
     }
 
-    // Cadastrar
     @PostMapping
-    public Produto salvar(@RequestBody Produto produto) {
-        return repository.save(produto);
+    public ResponseEntity<?> criar(@RequestBody Produto produto) {
+        try {
+            Produto salvo = produtoService.salvar(produto);
+            return ResponseEntity.status(201).body(salvo);
+        } catch (Exception e) {
+            return ResponseEntity.status(400).body(Map.of("erro", e.getMessage()));
+        }
     }
 
-    // Atualizar
     @PutMapping("/{id}")
-    public Produto atualizar(@PathVariable Long id,
-                             @RequestBody Produto produtoAtualizado) {
-
-        Produto produto = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Produto não encontrado"));
-
-        produto.setNome(produtoAtualizado.getNome());
-        produto.setPreco(produtoAtualizado.getPreco());
-
-        return repository.save(produto);
+    public ResponseEntity<?> atualizar(@PathVariable Long id, @RequestBody Produto produto) {
+        try {
+            Produto atualizado = produtoService.atualizar(id, produto);
+            if (atualizado != null) {
+                return ResponseEntity.ok(atualizado);
+            }
+            return ResponseEntity.status(404).body(Map.of("erro", "Produto não encontrado"));
+        } catch (Exception e) {
+            return ResponseEntity.status(400).body(Map.of("erro", e.getMessage()));
+        }
     }
 
-    // Excluir
     @DeleteMapping("/{id}")
-    public void excluir(@PathVariable Long id) {
-        repository.deleteById(id);
+    public ResponseEntity<?> deletar(@PathVariable Long id) {
+        try {
+            produtoService.deletar(id);
+            return ResponseEntity.ok(Map.of("msg", "Produto deletado com sucesso"));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("erro", e.getMessage()));
+        }
     }
 }

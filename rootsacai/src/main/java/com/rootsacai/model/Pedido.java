@@ -13,99 +13,102 @@ import jakarta.persistence.Table;
 @Table(name = "pedidos")
 public class Pedido {
 
-@Id
-@GeneratedValue(strategy = GenerationType.IDENTITY)
-private Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-private String tamanho;
+    private String tamanho;
+    private Double total;
+    private String status;
 
-private Double total;
+    @Column(name = "cliente_nome")
+    private String clienteNome;
 
-private String status;
+    @Column(name = "cliente_tel")
+    private String clienteTel;
 
-@Column(name = "cliente_nome")
-private String clienteNome;
+    private String tipo;
+    private String observacao;
 
-@Column(name = "cliente_tel")
-private String clienteTel;
+    @Column(name = "criado_em")
+    private LocalDateTime criadoEm;
 
-private String tipo;
-private String observacao;
+    @Column(name = "cliente_id")
+    private Long clienteId;
 
-@Column(name = "criado_em")
-private LocalDateTime criadoEm;
+    public Long getId() {
+        return id;
+    }
 
-@Column(name = "cliente_id")
-private Long clienteId;
+    public String getTamanho() {
+        return tamanho;
+    }
 
-public Long getId() {
-    return id;
+    public void setTamanho(String tamanho) {
+        this.tamanho = tamanho;
+    }
 
-    
-}
+    public Double getTotal() {
+        return total;
+    }
 
-public String getTamanho() {
-    return tamanho;
-}
+    public void setTotal(Double total) {
+        this.total = total;
+    }
 
-public void setTamanho(String tamanho) {
-    this.tamanho = tamanho;
-}
+    public String getStatus() {
+        return status;
+    }
 
-public Double getTotal() {
-    return total;
-}
+    public void setStatus(String status) {
+        this.status = status;
+    }
 
-public void setTotal(Double total) {
-    this.total = total;
-}
+    public String getClienteNome() {
+        return clienteNome;
+    }
 
-public String getStatus() {
-    return status;
-}
+    public void setClienteNome(String clienteNome) {
+        this.clienteNome = clienteNome;
+    }
 
-public void setStatus(String status) {
-    this.status = status;
-}
+    public String getClienteTel() {
+        return clienteTel;
+    }
 
-public String getClienteNome() {
-    return clienteNome;
-}
+    public void setClienteTel(String clienteTel) {
+        this.clienteTel = clienteTel;
+    }
 
-public void setClienteNome(String clienteNome) {
-    this.clienteNome = clienteNome;
-}
+    public String getTipo() {
+        return tipo;
+    }
 
-public String getClienteTel() {
-    return clienteTel;
-}
+    public void setTipo(String tipo) {
+        this.tipo = tipo;
+    }
 
-public void setClienteTel(String clienteTel) {
-    this.clienteTel = clienteTel;
-}
+    public String getObservacao() {
+        return observacao;
+    }
 
-public String getTipo() {
-    return tipo;
-}
+    public void setObservacao(String observacao) {
+        this.observacao = observacao;
+    }
 
-public void setTipo(String tipo) {
-    this.tipo = tipo;
-}
+    public LocalDateTime getCriadoEm() {
+        return criadoEm;
+    }
 
-public String getObservacao() {
-    return observacao;
-}
+    public void setCriadoEm(LocalDateTime criadoEm) {
+        this.criadoEm = criadoEm;
+    }
 
-public void setObservacao(String observacao) {
-    this.observacao = observacao;
-}
+    public Long getClienteId() {
+        return clienteId;
+    }
 
-public LocalDateTime getCriadoEm() {
-    return criadoEm;
-}
-
-public void setCriadoEm(LocalDateTime criadoEm) {
-    this.criadoEm = criadoEm;
-}
-
+    public void setClienteId(Long clienteId) {
+        this.clienteId = clienteId;
+    }
 }
